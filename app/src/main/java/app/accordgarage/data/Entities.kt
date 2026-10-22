@@ -93,7 +93,8 @@ data class ManualDoc(
 @Entity(tableName = "manual_pages")
 data class ManualPage(
     @PrimaryKey @ColumnInfo(name = "rowid") val rowId: Int,
-    val docId: Long,
+    // Not "docId": FTS tables already have a hidden docid column.
+    val manualId: Long,
     val pageNumber: Int,
     val text: String,
 )

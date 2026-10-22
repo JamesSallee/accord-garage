@@ -148,13 +148,13 @@ interface ManualDao {
     @Query("DELETE FROM manual_docs WHERE id = :id")
     suspend fun deleteDoc(id: Long)
 
-    @Query("INSERT INTO manual_pages(docId, pageNumber, text) VALUES (:docId, :pageNumber, :text)")
+    @Query("INSERT INTO manual_pages(manualId, pageNumber, text) VALUES (:docId, :pageNumber, :text)")
     suspend fun insertPage(docId: Long, pageNumber: Int, text: String)
 
-    @Query("DELETE FROM manual_pages WHERE docId = :docId")
+    @Query("DELETE FROM manual_pages WHERE manualId = :docId")
     suspend fun deletePages(docId: Long)
 
-    @Query("SELECT docId, pageNumber, text FROM manual_pages WHERE manual_pages MATCH :query LIMIT 60")
+    @Query("SELECT manualId AS docId, pageNumber, text FROM manual_pages WHERE manual_pages MATCH :query LIMIT 60")
     suspend fun search(query: String): List<PageHit>
 
     @Query("SELECT * FROM manual_bookmarks ORDER BY docId, pageNumber")
