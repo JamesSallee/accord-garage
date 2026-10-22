@@ -32,7 +32,10 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // Shrinks the APK a lot (mostly unused icons); rules in proguard-rules.pro.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.getByName("garage")
         }
         debug {
@@ -81,5 +84,6 @@ dependencies {
     ksp("androidx.room:room-compiler:2.6.1")
 
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
-    implementation("com.google.mlkit:text-recognition:16.0.1")
+    // Uses the text-recognition model from Google Play services, so it isn't bundled in the APK.
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
 }
