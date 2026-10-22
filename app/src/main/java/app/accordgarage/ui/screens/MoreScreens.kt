@@ -207,14 +207,14 @@ fun SpecsScreen(nav: NavHostController) {
     Column(Modifier.fillMaxSize()) {
         GarageTopBar("Quick specs", "Tap a row to fill in or confirm it", onBack = { nav.popBackStack() })
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
-            Note("Values marked CHECK come from published figures for this model. Confirm each against the official manual or the label named, then tick it confirmed.")
+            Note("Values with a ✓ were checked against the 2008 Accord Coupe owner's manual. Values marked CHECK or ADD still need confirming against the manual or the label named.")
             Specs.groups.forEach { (group, defs) ->
                 VSpace(16)
                 SectionLabel(group)
                 defs.forEach { d ->
                     val sv = map[d.key]
                     val value = sv?.value ?: d.value
-                    val confirmed = d.fromVin || sv?.confirmed == true
+                    val confirmed = d.fromVin || (sv?.confirmed ?: d.fromManual)
                     val shown = when {
                         value.isBlank() -> "—"
                         d.sensitive -> "••••"
@@ -247,7 +247,7 @@ fun SpecsScreen(nav: NavHostController) {
     editing?.let { d ->
         val sv = map[d.key]
         var value by remember(d) { mutableStateOf(sv?.value ?: d.value) }
-        var confirmed by remember(d) { mutableStateOf(sv?.confirmed == true) }
+        var confirmed by remember(d) { mutableStateOf(sv?.confirmed ?: d.fromManual) }
         AlertDialog(
             onDismissRequest = { editing = null },
             title = { Text(d.label) },
