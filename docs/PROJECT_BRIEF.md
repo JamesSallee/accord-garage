@@ -53,4 +53,5 @@ Known weak spots the app watches: early rear brake pad wear, oil consumption (pi
 
 - v1.0 (build 5): home, service/fuel/oil logs with receipt OCR, Minder decoder, reminders, manual import and search, 15 guides, recalls, quick specs, documents wallet, roadside help, encrypted backup file. Not yet tested on the phone.
 - v1.1 ideas: photo of the car on the home screen, OBD-II Bluetooth scanner, auto-dimming mirror + dash cam guide (shared fuse tap and headliner run; products not yet chosen), hands-free voice "next"/"repeat", warning-light identifier, symptom troubleshooter, tire log, resale PDF, home-screen widget.
-- Open: confirm Quick specs values against the manual; confirm all airbag recalls are done on this VIN.
+- Open: confirm Quick specs values against the manual.
+- Done: all airbag recalls are completed on this VIN and recorded in the app (confirmed by James, Oct 2026).
