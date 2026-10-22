@@ -4,8 +4,9 @@ import app.accordgarage.data.Vehicle
 
 /**
  * A quick-spec row. [value] is a starting value with its [source]; values marked
- * [fromVin] come from the VIN decode, everything else stays flagged until the owner
- * confirms it against the official manual.
+ * [fromVin] come from the VIN decode and values marked [fromManual] were checked
+ * against the 2008 Accord Coupe owner's manual. Everything else stays flagged until
+ * the owner confirms it against the manual or the label named.
  */
 data class SpecDef(
     val key: String,
@@ -13,6 +14,7 @@ data class SpecDef(
     val value: String = "",
     val source: String = "",
     val fromVin: Boolean = false,
+    val fromManual: Boolean = false,
     val manualQuery: String? = null,
     val sensitive: Boolean = false,
 )
@@ -27,27 +29,27 @@ object Specs {
             SpecDef("paint_code", "Paint code", source = "Driver's door-jamb label"),
         ),
         "FLUIDS" to listOf(
-            SpecDef("oil_type", "Engine oil", "SAE 5W-20", "Published 2008–2010 Accord spec", manualQuery = "engine oil"),
-            SpecDef("oil_capacity", "Oil capacity with filter", "4.2 US qt", "Published 2008–2012 Accord 4-cyl spec", manualQuery = "engine oil capacity"),
-            SpecDef("atf", "Transmission fluid", "Honda ATF DW-1", "Honda fluid for this transmission", manualQuery = "transmission fluid"),
-            SpecDef("coolant", "Coolant", "Honda Long Life Antifreeze/Coolant Type 2", "Honda coolant", manualQuery = "coolant"),
-            SpecDef("brake_fluid", "Brake fluid", "DOT 3", "Honda brake fluid", manualQuery = "brake fluid"),
+            SpecDef("oil_type", "Engine oil", "SAE 5W-20, API certified", "Owner's manual p. 306", fromManual = true, manualQuery = "engine oil"),
+            SpecDef("oil_capacity", "Oil capacity with filter", "4.4 US qt (4.2 L)", "Owner's manual p. 309 and 376", fromManual = true, manualQuery = "engine oil capacity"),
+            SpecDef("atf", "Transmission fluid", "Honda ATF-Z1 (now sold as ATF DW-1)", "Owner's manual p. 314; DW-1 is Honda's replacement for Z1", fromManual = true, manualQuery = "transmission fluid"),
+            SpecDef("coolant", "Coolant", "Honda Long-Life Antifreeze/Coolant Type 2", "Owner's manual, Engine Coolant", fromManual = true, manualQuery = "coolant"),
+            SpecDef("brake_fluid", "Brake fluid", "Honda Heavy Duty Brake Fluid DOT 3", "Owner's manual, Brake Fluid", fromManual = true, manualQuery = "brake fluid"),
         ),
         "WHEELS AND TIRES" to listOf(
-            SpecDef("tire_size", "Tire size", source = "Tire sidewall or door-jamb label", manualQuery = "tire size"),
-            SpecDef("tire_pressure_front", "Pressure, front (cold)", source = "Door-jamb label", manualQuery = "tire pressure"),
-            SpecDef("tire_pressure_rear", "Pressure, rear (cold)", source = "Door-jamb label", manualQuery = "tire pressure"),
-            SpecDef("spare_pressure", "Spare tire pressure", source = "Door-jamb label", manualQuery = "spare tire"),
-            SpecDef("lug_torque", "Lug nut torque", "80 lbf·ft (108 N·m)", "Commonly published Accord figure", manualQuery = "wheel nut"),
+            SpecDef("tire_size", "Tire size", "P225/50R17 93V", "Owner's manual p. 336 and 377", fromManual = true, manualQuery = "tire size"),
+            SpecDef("tire_pressure_front", "Pressure, front (cold)", "32 psi (220 kPa)", "Owner's manual p. 336", fromManual = true, manualQuery = "tire pressure"),
+            SpecDef("tire_pressure_rear", "Pressure, rear (cold)", "32 psi (220 kPa)", "Owner's manual p. 336", fromManual = true, manualQuery = "tire pressure"),
+            SpecDef("spare_pressure", "Spare tire pressure", "60 psi (420 kPa), T135/80D16 compact", "Owner's manual p. 336 and 377", fromManual = true, manualQuery = "spare tire"),
+            SpecDef("lug_torque", "Lug nut torque", "80 lbf·ft (108 N·m)", "Owner's manual p. 352", fromManual = true, manualQuery = "wheel nut"),
         ),
         "PARTS" to listOf(
-            SpecDef("drain_plug_torque", "Oil drain plug torque", "29 lbf·ft (39 N·m)", "Commonly published Honda figure"),
+            SpecDef("drain_plug_torque", "Oil drain plug torque", "29 lbf·ft (39 N·m)", "Owner's manual p. 309", fromManual = true),
             SpecDef("battery_group", "Battery group size", source = "Label on the current battery"),
             SpecDef("wiper_driver", "Wiper, driver", manualQuery = "wiper blade"),
             SpecDef("wiper_passenger", "Wiper, passenger", manualQuery = "wiper blade"),
-            SpecDef("bulb_low", "Headlight bulb, low beam", manualQuery = "bulb"),
-            SpecDef("bulb_high", "Headlight bulb, high beam", manualQuery = "bulb"),
-            SpecDef("spark_plug", "Spark plug part number", manualQuery = "spark plug"),
+            SpecDef("bulb_low", "Headlight bulb, low beam", "H11 (12 V 55 W)", "Owner's manual p. 377", fromManual = true, manualQuery = "bulb"),
+            SpecDef("bulb_high", "Headlight bulb, high beam", "HB3 / 9005 (12 V 60 W)", "Owner's manual p. 377", fromManual = true, manualQuery = "bulb"),
+            SpecDef("spark_plug", "Spark plug part number", "NGK ILZKR7B11S or DENSO SXU22HCR11S; PZEV engine: NGK DILZKR7A11GS", "Owner's manual p. 376; PZEV or ULEV is on the under-hood emissions label", manualQuery = "spark plug"),
         ),
         "PERSONAL" to listOf(
             SpecDef("radio_code", "Factory radio anti-theft code", source = "Glovebox sticker, manual, or a Honda dealer", sensitive = true),

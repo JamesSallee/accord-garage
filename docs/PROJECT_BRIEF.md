@@ -53,4 +53,5 @@ Known weak spots the app watches: early rear brake pad wear, oil consumption (pi
 
 - v1.0 (build 5): home, service/fuel/oil logs with receipt OCR, Minder decoder, reminders, manual import and search, 15 guides, recalls, quick specs, documents wallet, roadside help, encrypted backup file. Not yet tested on the phone.
 - v1.1 ideas: photo of the car on the home screen, OBD-II Bluetooth scanner, auto-dimming mirror + dash cam guide (shared fuse tap and headliner run; products not yet chosen), hands-free voice "next"/"repeat", warning-light identifier, symptom troubleshooter, tire log, resale PDF, home-screen widget.
-- Open: confirm Quick specs values against the manual; confirm all airbag recalls are done on this VIN.
+- Done: Quick specs checked against the 2008 Accord Coupe owner's manual (Oct 2026). Oil capacity corrected to 4.4 US qt (4.2 L); manual specifies ATF-Z1 (DW-1 is the current replacement). Still to fill from the car: paint code, battery group, wiper sizes, PZEV or ULEV for the spark plug, radio code.
+- Done: all airbag recalls are completed on this VIN and recorded in the app (confirmed by James, Oct 2026).
