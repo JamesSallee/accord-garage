@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import app.accordgarage.content.WarningLights
 import app.accordgarage.data.OdometerReading
 import app.accordgarage.data.Vehicle
 import app.accordgarage.domain.DueState
@@ -45,6 +46,7 @@ import app.accordgarage.ui.LocalContainer
 import app.accordgarage.ui.components.CarIllustration
 import app.accordgarage.ui.components.Field
 import app.accordgarage.ui.components.Fmt
+import app.accordgarage.ui.components.LightGlyph
 import app.accordgarage.ui.components.RowItem
 import app.accordgarage.ui.components.SecondaryButton
 import app.accordgarage.ui.components.SectionLabel
@@ -89,6 +91,9 @@ fun HomeScreen(nav: NavHostController) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
         Row(Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("ACCORD GARAGE", style = Type.label, color = g.muted, modifier = Modifier.weight(1f))
+            IconButton(onClick = { nav.navigate("lights") }) {
+                LightGlyph(WarningLights.all.first { it.id == "mil" }, 24.dp, tint = g.text2)
+            }
             IconButton(onClick = { nav.navigate("roadside") }) {
                 Icon(Icons.Outlined.WarningAmber, contentDescription = "Roadside help", tint = g.text2)
             }

@@ -3,6 +3,9 @@ name: Build APK
 on:
   push:
     branches: [main]
+  # Pull requests get a build check only; nothing is published.
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -44,6 +47,7 @@ jobs:
           path: accord-garage-*.apk
 
       - name: Publish as a release
+        if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
