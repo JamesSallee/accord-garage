@@ -316,10 +316,10 @@ class ManualRepository(private val context: Context, private val db: AppDatabase
         }
         val corrected = if (fixed != words) fixed.joinToString(" ") else null
 
-        fun run(query: String?): List<PageHit> =
+        suspend fun find(query: String?): List<PageHit> =
             if (query == null) emptyList() else runCatching { db.manual().search(query) }.getOrDefault(emptyList())
 
-        val hits = run(SearchQuery.build(fixed)).ifEmpty { run(SearchQuery.buildAny(fixed)) }
+        val hits = find(SearchQuery.build(fixed)).ifEmpty { find(SearchQuery.buildAny(fixed)) }
         val sections = hits.map { it.docId }.distinct().associateWith { db.manual().sectionsNow(it) }
         val ranked = Ranker.rank(hits, fixed, sections).take(MAX_RESULTS)
         ManualSearch(ranked, SearchQuery.expand(fixed), corrected)
