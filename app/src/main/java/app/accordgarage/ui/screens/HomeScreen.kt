@@ -3,6 +3,7 @@ package app.accordgarage.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -36,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import app.accordgarage.content.Specs
 import app.accordgarage.content.WarningLights
 import app.accordgarage.data.OdometerReading
 import app.accordgarage.data.Vehicle
@@ -43,10 +46,12 @@ import app.accordgarage.domain.DueState
 import app.accordgarage.domain.JobStatus
 import app.accordgarage.domain.Zone
 import app.accordgarage.ui.LocalContainer
+import app.accordgarage.ui.manualSearch
 import app.accordgarage.ui.components.CarIllustration
 import app.accordgarage.ui.components.Field
 import app.accordgarage.ui.components.Fmt
 import app.accordgarage.ui.components.LightGlyph
+import app.accordgarage.ui.components.Panel
 import app.accordgarage.ui.components.RowItem
 import app.accordgarage.ui.components.SecondaryButton
 import app.accordgarage.ui.components.SectionLabel
@@ -207,6 +212,19 @@ fun HomeScreen(nav: NavHostController) {
             }
         }
 
+        // Quick cards: the things most often looked up at the roadside or in the garage.
+        val pressure = Specs.all.firstOrNull { it.key == "tire_pressure_front" }?.value?.substringBefore(" (") ?: "32 psi"
+        Row(
+            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(start = 20.dp, end = 20.dp, top = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            QuickCard("Tire pressure", pressure, "FRONT AND REAR, COLD") { nav.navigate("specs") }
+            QuickCard("Warning lights", "Identify", "WHAT A DASH LIGHT MEANS") { nav.navigate("lights") }
+            QuickCard("Jump start", "Steps", "ROADSIDE HELP") { nav.navigate("roadside") }
+            QuickCard("Fuse map", "Manual", "FUSE LOCATIONS") { nav.manualSearch("fuse locations") }
+            QuickCard("Clock", "Manual", "SETTING THE CLOCK") { nav.manualSearch("set the clock") }
+        }
+
         // Work list
         if (s != null) {
             VSpace(16)
@@ -269,6 +287,7 @@ fun HomeScreen(nav: NavHostController) {
 @Composable
 fun StatusRow(st: JobStatus, onClick: () -> Unit) {
     val sub = when {
+        st.snoozedUntil != null -> "SNOOZED TO ${Fmt.date(st.snoozedUntil).uppercase()}"
         st.state == DueState.CATCH_UP -> "${st.job.action.uppercase()} · NOT LOGGED"
         st.state == DueState.MINDER -> "MINDER ${st.job.action.uppercase()}"
         st.lastDone != null && st.milesLeft != null && st.milesLeft < 0 -> "${Fmt.miles(-st.milesLeft)} MI OVERDUE"
@@ -278,4 +297,17 @@ fun StatusRow(st: JobStatus, onClick: () -> Unit) {
         else -> st.state.label
     }
     RowItem(st.job.name, sub, onClick = onClick, dot = stateColor(st.state))
+}
+
+@Composable
+private fun QuickCard(label: String, value: String, sub: String, onClick: () -> Unit) {
+    val g = LocalGarage.current
+    Panel(Modifier.widthIn(min = 132.dp), onClick = onClick) {
+        Column {
+            Text(label.uppercase(), style = Type.label, color = g.muted)
+            VSpace(4)
+            Text(value, style = Type.mono.copy(fontSize = Type.mono.fontSize * 1.4f), color = g.text)
+            Text(sub, style = Type.monoSmall, color = g.muted)
+        }
+    }
 }

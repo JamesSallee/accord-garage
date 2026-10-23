@@ -259,7 +259,7 @@ fun TutorialScreen(nav: NavHostController, id: String) {
                     PrimaryButton(if (stepIndex < 0) "Start" else "Next step", { stepIndex++ }, Modifier.weight(2f), tall = true)
                 } else {
                     PrimaryButton("Finish and log", {
-                        nav.navigate("service/0?jobs=${t.jobIds.joinToString(",")}")
+                        nav.navigate("service/0?jobs=${t.jobIds.joinToString(",")}&tutorial=${t.id}")
                     }, Modifier.weight(2f), tall = true)
                 }
             }

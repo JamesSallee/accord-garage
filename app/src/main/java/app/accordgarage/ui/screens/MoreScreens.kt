@@ -29,6 +29,8 @@ import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Insights
+import androidx.compose.material.icons.outlined.Payments
 import androidx.compose.material.icons.outlined.ListAlt
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.Tune
@@ -99,6 +101,8 @@ fun MoreScreen(nav: NavHostController, lightTheme: Boolean, onToggleTheme: (Bool
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
             RowItem("Maintenance schedule", onClick = { nav.navigate("maintenance") }, icon = Icons.Outlined.ListAlt)
             RowItem("Maintenance Minder", onClick = { nav.navigate("minder") }, icon = Icons.Outlined.Speed)
+            RowItem("Costs", onClick = { nav.navigate("costs") }, icon = Icons.Outlined.Payments)
+            RowItem("Wear trends", onClick = { nav.navigate("trends") }, icon = Icons.Outlined.Insights)
             RowItem("Warning lights", onClick = { nav.navigate("lights") }, icon = Icons.Outlined.ErrorOutline)
             RowItem("Recalls", onClick = { nav.navigate("recalls") }, icon = Icons.Outlined.WarningAmber)
             RowItem("Quick specs", onClick = { nav.navigate("specs") }, icon = Icons.Outlined.Tune)

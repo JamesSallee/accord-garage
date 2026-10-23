@@ -24,12 +24,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import app.accordgarage.data.IntervalOverride
+import app.accordgarage.data.JobSnooze
+import app.accordgarage.data.ServiceRecord
 import app.accordgarage.data.MinderReading
 import app.accordgarage.domain.Catalog
 import app.accordgarage.domain.CarSystem
+import app.accordgarage.domain.DueState
 import app.accordgarage.domain.Minder
 import app.accordgarage.ui.LocalContainer
 import app.accordgarage.ui.components.ButtonRow
+import app.accordgarage.ui.components.DateField
 import app.accordgarage.ui.components.Field
 import app.accordgarage.ui.components.Fmt
 import app.accordgarage.ui.components.GarageTopBar
@@ -139,18 +143,27 @@ fun MinderScreen(nav: NavHostController) {
 fun MaintenanceScreen(nav: NavHostController) {
     val c = LocalContainer.current
     val snap by c.snapshot.collectAsState(initial = null)
+    var showAll by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize()) {
         GarageTopBar("Maintenance schedule", "Every job, by system", onBack = { nav.popBackStack() })
         val s = snap ?: return@Column
+        // Jobs with no interval and no history are as-needed repairs; keep them out of the way.
+        val asNeeded = s.statuses.filter { it.state == DueState.NO_INTERVAL && it.lastDone == null }
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
             CarSystem.entries.forEach { system ->
-                val rows = s.statuses.filter { it.job.system == system }
+                val rows = s.statuses.filter { it.job.system == system && (showAll || it !in asNeeded) }
                 if (rows.isNotEmpty()) {
                     VSpace(12)
                     SectionLabel(system.label)
                     rows.forEach { st -> StatusRow(st) { nav.navigate("job/${st.job.id}") } }
                 }
             }
+            VSpace(12)
+            SecondaryButton(
+                if (showAll) "Hide as-needed jobs" else "Show ${asNeeded.size} as-needed jobs",
+                { showAll = !showAll },
+                Modifier.fillMaxWidth(),
+            )
             VSpace(32)
         }
     }
@@ -165,6 +178,8 @@ fun JobScreen(nav: NavHostController, jobId: String) {
     val snap by c.snapshot.collectAsState(initial = null)
     val services by c.db.services().all().collectAsState(initial = emptyList())
     var editInterval by remember { mutableStateOf(false) }
+    var snoozing by remember { mutableStateOf(false) }
+    var elsewhere by remember { mutableStateOf(false) }
     val status = snap?.statuses?.firstOrNull { it.job.id == jobId }
     val history = services.filter { jobId in it.jobs }
 
@@ -211,6 +226,21 @@ fun JobScreen(nav: NavHostController, jobId: String) {
             ButtonRow {
                 PrimaryButton("Log it", { nav.navigate("service/0?jobs=${job.id}") }, Modifier.weight(1f))
                 SecondaryButton("Interval", { editInterval = true }, Modifier.weight(1f))
+            }
+            VSpace(8)
+            ButtonRow {
+                SecondaryButton("Done elsewhere", { elsewhere = true }, Modifier.weight(1f))
+                val snoozedUntil = status?.snoozedUntil
+                when {
+                    snoozedUntil != null -> SecondaryButton("Un-snooze", {
+                        scope.launch { c.db.settings().clearSnooze(job.id) }
+                    }, Modifier.weight(1f))
+                    status?.isAlerting == true -> SecondaryButton("Snooze", { snoozing = true }, Modifier.weight(1f))
+                }
+            }
+            status?.snoozedUntil?.let {
+                VSpace(6)
+                Text("Snoozed until ${Fmt.date(it)}. It's off Due now and won't notify until then.", style = Type.bodySmall, color = g.muted)
             }
             job.tutorialId?.let { t ->
                 VSpace(8)
@@ -262,6 +292,65 @@ fun JobScreen(nav: NavHostController, jobId: String) {
                     editInterval = false
                 }) { Text("Use default") }
             },
+        )
+    }
+
+    if (snoozing) {
+        AlertDialog(
+            onDismissRequest = { snoozing = false },
+            title = { Text("Snooze ${job.name}") },
+            text = {
+                Column {
+                    listOf("1 week" to 7L, "2 weeks" to 14L, "1 month" to 30L, "3 months" to 91L).forEach { (label, days) ->
+                        RowItem(label, "UNTIL ${Fmt.date(LocalDate.now().plusDays(days)).uppercase()}", onClick = {
+                            scope.launch { c.db.settings().upsertSnooze(JobSnooze(job.id, LocalDate.now().plusDays(days).toEpochDay())) }
+                            snoozing = false
+                        }, showChevron = false)
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { snoozing = false }) { Text("Cancel") } },
+        )
+    }
+
+    if (elsewhere) {
+        var date by remember { mutableStateOf(LocalDate.now().toEpochDay()) }
+        var odo by remember { mutableStateOf(snap?.odometer?.toString() ?: "") }
+        var where by remember { mutableStateOf("") }
+        AlertDialog(
+            onDismissRequest = { elsewhere = false },
+            title = { Text("${job.name}: done elsewhere") },
+            text = {
+                Column {
+                    Text("Records it as done so the reminder resets. Add costs and receipts later from the Log if you have them.", style = Type.bodySmall, color = g.muted)
+                    VSpace(10)
+                    DateField("Date", date, { date = it })
+                    VSpace(8)
+                    Field("Odometer", odo, { odo = it }, number = true, mono = true)
+                    VSpace(8)
+                    Field("Where (optional)", where, { where = it }, placeholder = "e.g. dealer, quick lube")
+                }
+            },
+            confirmButton = {
+                val o = odo.toNumberOrNull()?.toInt()
+                TextButton(enabled = o != null, onClick = {
+                    if (o != null) scope.launch {
+                        c.db.services().upsert(
+                            ServiceRecord(
+                                jobIds = job.id,
+                                dateEpochDay = date,
+                                odometer = o,
+                                shop = where.trim().ifBlank { "Elsewhere" },
+                                notes = "Marked done elsewhere.",
+                            )
+                        )
+                        c.db.settings().clearSnooze(job.id)
+                    }
+                    elsewhere = false
+                }) { Text("Save") }
+            },
+            dismissButton = { TextButton(onClick = { elsewhere = false }) { Text("Cancel") } },
         )
     }
 }

@@ -44,6 +44,7 @@ import androidx.navigation.navArgument
 import app.accordgarage.data.Container
 import app.accordgarage.ui.screens.AboutScreen
 import app.accordgarage.ui.screens.BackupScreen
+import app.accordgarage.ui.screens.CostsScreen
 import app.accordgarage.ui.screens.DocumentEditScreen
 import app.accordgarage.ui.screens.DocumentsScreen
 import app.accordgarage.ui.screens.FuelEditScreen
@@ -52,6 +53,7 @@ import app.accordgarage.ui.screens.HomeScreen
 import app.accordgarage.ui.screens.JobScreen
 import app.accordgarage.ui.screens.LogScreen
 import app.accordgarage.ui.screens.MaintenanceScreen
+import app.accordgarage.ui.screens.ManualChaptersScreen
 import app.accordgarage.ui.screens.ManualPageScreen
 import app.accordgarage.ui.screens.ManualScreen
 import app.accordgarage.ui.screens.MinderScreen
@@ -61,6 +63,7 @@ import app.accordgarage.ui.screens.RecallsScreen
 import app.accordgarage.ui.screens.RoadsideScreen
 import app.accordgarage.ui.screens.ServiceEditScreen
 import app.accordgarage.ui.screens.SpecsScreen
+import app.accordgarage.ui.screens.TrendsScreen
 import app.accordgarage.ui.screens.TutorialScreen
 import app.accordgarage.ui.screens.WarningLightScreen
 import app.accordgarage.ui.screens.WarningLightsScreen
@@ -145,12 +148,22 @@ fun AppNav(lightTheme: Boolean, onToggleTheme: (Boolean) -> Unit) {
                 composable("more") { MoreScreen(nav, lightTheme, onToggleTheme) }
 
                 composable(
-                    "service/{id}?jobs={jobs}",
+                    "service/{id}?jobs={jobs}&tutorial={tutorial}",
                     arguments = listOf(
                         navArgument("id") { type = NavType.LongType },
                         navArgument("jobs") { type = NavType.StringType; defaultValue = "" },
+                        navArgument("tutorial") { type = NavType.StringType; defaultValue = "" },
                     ),
-                ) { ServiceEditScreen(nav, it.arguments?.getLong("id") ?: 0L, it.arguments?.getString("jobs") ?: "") }
+                ) {
+                    ServiceEditScreen(
+                        nav,
+                        it.arguments?.getLong("id") ?: 0L,
+                        it.arguments?.getString("jobs") ?: "",
+                        it.arguments?.getString("tutorial") ?: "",
+                    )
+                }
+                composable("costs") { CostsScreen(nav) }
+                composable("trends") { TrendsScreen(nav) }
                 composable("fuel/{id}", arguments = listOf(navArgument("id") { type = NavType.LongType })) {
                     FuelEditScreen(nav, it.arguments?.getLong("id") ?: 0L)
                 }
@@ -171,6 +184,9 @@ fun AppNav(lightTheme: Boolean, onToggleTheme: (Boolean) -> Unit) {
                     ),
                 ) {
                     ManualPageScreen(nav, it.arguments?.getLong("docId") ?: 0L, it.arguments?.getInt("page") ?: 1, it.arguments?.getString("q") ?: "")
+                }
+                composable("chapters/{docId}", arguments = listOf(navArgument("docId") { type = NavType.LongType })) {
+                    ManualChaptersScreen(nav, it.arguments?.getLong("docId") ?: 0L)
                 }
                 composable("tutorial/{id}", arguments = listOf(navArgument("id") { type = NavType.StringType })) {
                     TutorialScreen(nav, it.arguments?.getString("id") ?: "")

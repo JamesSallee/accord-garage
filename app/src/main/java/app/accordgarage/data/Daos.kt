@@ -154,8 +154,38 @@ interface ManualDao {
     @Query("DELETE FROM manual_pages WHERE manualId = :docId")
     suspend fun deletePages(docId: Long)
 
-    @Query("SELECT manualId AS docId, pageNumber, text FROM manual_pages WHERE manual_pages MATCH :query LIMIT 60")
+    @Query("SELECT manualId AS docId, pageNumber, text FROM manual_pages WHERE manual_pages MATCH :query LIMIT 400")
     suspend fun search(query: String): List<PageHit>
+
+    @Query("SELECT text FROM manual_pages")
+    suspend fun allText(): List<String>
+
+    @Query("SELECT text FROM manual_pages WHERE manualId = :docId AND pageNumber = :pageNumber LIMIT 1")
+    suspend fun pageText(docId: Long, pageNumber: Int): String?
+
+    @Insert
+    suspend fun insertSections(sections: List<ManualSection>)
+
+    @Query("SELECT * FROM manual_sections WHERE manualId = :docId ORDER BY pageNumber, id")
+    fun sections(docId: Long): Flow<List<ManualSection>>
+
+    @Query("SELECT * FROM manual_sections WHERE manualId = :docId ORDER BY pageNumber, id")
+    suspend fun sectionsNow(docId: Long): List<ManualSection>
+
+    @Query("DELETE FROM manual_sections WHERE manualId = :docId")
+    suspend fun deleteSections(docId: Long)
+
+    @Query("SELECT * FROM manual_notes ORDER BY docId, pageNumber")
+    fun notes(): Flow<List<ManualNote>>
+
+    @Upsert
+    suspend fun upsertNote(note: ManualNote)
+
+    @Query("DELETE FROM manual_notes WHERE docId = :docId AND pageNumber = :pageNumber")
+    suspend fun deleteNote(docId: Long, pageNumber: Int)
+
+    @Query("DELETE FROM manual_notes WHERE docId = :docId")
+    suspend fun deleteNotesFor(docId: Long)
 
     @Query("SELECT * FROM manual_bookmarks ORDER BY docId, pageNumber")
     fun bookmarks(): Flow<List<ManualBookmark>>
@@ -211,6 +241,57 @@ interface SettingsDao {
     @Query("SELECT * FROM spec_values")
     fun specs(): Flow<List<SpecValue>>
 
+    @Query("SELECT * FROM spec_values")
+    suspend fun specsNow(): List<SpecValue>
+
+    @Query("SELECT * FROM job_snoozes")
+    fun snoozes(): Flow<List<JobSnooze>>
+
+    @Query("SELECT * FROM job_snoozes")
+    suspend fun snoozesNow(): List<JobSnooze>
+
+    @Upsert
+    suspend fun upsertSnooze(snooze: JobSnooze)
+
+    @Query("DELETE FROM job_snoozes WHERE jobId = :jobId")
+    suspend fun clearSnooze(jobId: String)
+
     @Upsert
     suspend fun upsertSpec(value: SpecValue)
+}
+
+@Dao
+interface PartDao {
+    @Query("SELECT * FROM parts_used ORDER BY recordId, id")
+    fun all(): Flow<List<PartUsed>>
+
+    @Query("SELECT * FROM parts_used WHERE recordId = :recordId ORDER BY id")
+    suspend fun forRecord(recordId: Long): List<PartUsed>
+
+    @Insert
+    suspend fun insertAll(parts: List<PartUsed>)
+
+    @Query("DELETE FROM parts_used WHERE recordId = :recordId")
+    suspend fun deleteFor(recordId: Long)
+}
+
+@Dao
+interface WearDao {
+    @Query("SELECT * FROM wear_readings ORDER BY odometer, dateEpochDay, id")
+    fun all(): Flow<List<WearReading>>
+
+    @Query("SELECT * FROM wear_readings WHERE serviceId = :serviceId ORDER BY id")
+    suspend fun forService(serviceId: Long): List<WearReading>
+
+    @Insert
+    suspend fun insert(reading: WearReading): Long
+
+    @Insert
+    suspend fun insertAll(readings: List<WearReading>)
+
+    @Delete
+    suspend fun delete(reading: WearReading)
+
+    @Query("DELETE FROM wear_readings WHERE serviceId = :serviceId")
+    suspend fun deleteForService(serviceId: Long)
 }
