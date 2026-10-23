@@ -62,6 +62,8 @@ import app.accordgarage.ui.screens.RoadsideScreen
 import app.accordgarage.ui.screens.ServiceEditScreen
 import app.accordgarage.ui.screens.SpecsScreen
 import app.accordgarage.ui.screens.TutorialScreen
+import app.accordgarage.ui.screens.WarningLightScreen
+import app.accordgarage.ui.screens.WarningLightsScreen
 import app.accordgarage.ui.theme.Inter
 import app.accordgarage.ui.theme.LocalGarage
 
@@ -180,6 +182,10 @@ fun AppNav(lightTheme: Boolean, onToggleTheme: (Boolean) -> Unit) {
                 }
                 composable("specs") { SpecsScreen(nav) }
                 composable("roadside") { RoadsideScreen(nav) }
+                composable("lights") { WarningLightsScreen(nav) }
+                composable("light/{id}", arguments = listOf(navArgument("id") { type = NavType.StringType })) {
+                    WarningLightScreen(nav, it.arguments?.getString("id") ?: "")
+                }
                 composable("backup") { BackupScreen(nav) }
                 composable("about") { AboutScreen(nav) }
             }

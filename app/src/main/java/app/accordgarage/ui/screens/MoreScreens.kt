@@ -27,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Backup
 import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.ListAlt
 import androidx.compose.material.icons.outlined.Speed
@@ -98,6 +99,7 @@ fun MoreScreen(nav: NavHostController, lightTheme: Boolean, onToggleTheme: (Bool
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
             RowItem("Maintenance schedule", onClick = { nav.navigate("maintenance") }, icon = Icons.Outlined.ListAlt)
             RowItem("Maintenance Minder", onClick = { nav.navigate("minder") }, icon = Icons.Outlined.Speed)
+            RowItem("Warning lights", onClick = { nav.navigate("lights") }, icon = Icons.Outlined.ErrorOutline)
             RowItem("Recalls", onClick = { nav.navigate("recalls") }, icon = Icons.Outlined.WarningAmber)
             RowItem("Quick specs", onClick = { nav.navigate("specs") }, icon = Icons.Outlined.Tune)
             RowItem("Documents", onClick = { nav.navigate("documents") }, icon = Icons.Outlined.Description)
@@ -466,6 +468,8 @@ fun RoadsideScreen(nav: NavHostController) {
                 if (fine || coarse) shareLocation()
                 else askLocation.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
             }, Modifier.fillMaxWidth(), tall = true)
+            VSpace(10)
+            SecondaryButton("What's that light on the dash?", { nav.navigate("lights") }, Modifier.fillMaxWidth(), tall = true)
             VSpace(16)
             Roadside.guides.forEach { guide ->
                 Panel(Modifier.fillMaxWidth().padding(vertical = 4.dp), onClick = { open = if (open == guide.id) null else guide.id }) {
