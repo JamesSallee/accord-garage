@@ -25,6 +25,10 @@
             </intent-filter>
         </activity>
 
+        <receiver
+            android:name=".work.SnoozeReceiver"
+            android:exported="false" />
+
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"
             android:value="ocr" />

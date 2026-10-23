@@ -17,8 +17,13 @@ data class ServiceRecord(
     val partsCost: Double? = null,
     val laborCost: Double? = null,
     val minderCode: String = "",
+    /** Free-text parts from before parts were itemised; new records use [PartUsed]. */
     val parts: String = "",
     val notes: String = "",
+    /** For DIY work: what a shop would have charged, so the cost screen can show savings. */
+    val shopEstimate: Double? = null,
+    /** The guide followed, if any. */
+    val tutorialId: String? = null,
 ) {
     val jobs: List<String> get() = jobIds.split(',').map { it.trim() }.filter { it.isNotEmpty() }
     val totalCost: Double get() = (partsCost ?: 0.0) + (laborCost ?: 0.0)
@@ -139,4 +144,57 @@ data class SpecValue(
     @PrimaryKey val key: String,
     val value: String,
     val confirmed: Boolean = false,
+)
+
+/** One part or fluid on a service record. [price] is per unit. */
+@Entity(tableName = "parts_used")
+data class PartUsed(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val recordId: Long,
+    val name: String,
+    val brand: String = "",
+    val partNumber: String = "",
+    val quantity: Double = 1.0,
+    val unit: String = "",
+    val price: Double? = null,
+) {
+    val total: Double? get() = price?.let { it * quantity }
+}
+
+/**
+ * A wear measurement: brake pad thickness in mm ("pad_front", "pad_rear") or tread
+ * depth in 32nds of an inch ("tread_fl", "tread_fr", "tread_rl", "tread_rr").
+ */
+@Entity(tableName = "wear_readings")
+data class WearReading(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val dateEpochDay: Long,
+    val odometer: Int,
+    val kind: String,
+    val value: Double,
+    val serviceId: Long? = null,
+)
+
+/** A reminder put off until [untilEpochDay]. */
+@Entity(tableName = "job_snoozes")
+data class JobSnooze(
+    @PrimaryKey val jobId: String,
+    val untilEpochDay: Long,
+)
+
+/** A chapter or section from the manual's PDF bookmarks. */
+@Entity(tableName = "manual_sections")
+data class ManualSection(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val manualId: Long,
+    val title: String,
+    val pageNumber: Int,
+    val level: Int,
+)
+
+@Entity(tableName = "manual_notes", primaryKeys = ["docId", "pageNumber"])
+data class ManualNote(
+    val docId: Long,
+    val pageNumber: Int,
+    val text: String,
 )

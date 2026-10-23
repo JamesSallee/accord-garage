@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -20,7 +21,11 @@ import androidx.work.WorkerParameters
 import app.accordgarage.GarageApp
 import app.accordgarage.MainActivity
 import app.accordgarage.R
+import app.accordgarage.data.JobSnooze
 import app.accordgarage.domain.DueState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit
 
@@ -42,7 +47,7 @@ object Reminders {
     }
 
     @SuppressLint("MissingPermission")
-    fun notify(context: Context, id: Int, title: String, text: String) {
+    fun notify(context: Context, id: Int, title: String, text: String, snoozeJobId: String? = null) {
         if (Build.VERSION.SDK_INT >= 33 &&
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) return
@@ -51,15 +56,24 @@ object Reminders {
             Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
-        val n = NotificationCompat.Builder(context, CHANNEL)
+        val builder = NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_stat_garage)
             .setContentTitle(title)
             .setContentText(text)
             .setStyle(NotificationCompat.BigTextStyle().bigText(text))
             .setContentIntent(open)
             .setAutoCancel(true)
-            .build()
-        NotificationManagerCompat.from(context).notify(id, n)
+        if (snoozeJobId != null) {
+            val snooze = PendingIntent.getBroadcast(
+                context, id,
+                Intent(context, SnoozeReceiver::class.java)
+                    .putExtra(SnoozeReceiver.EXTRA_JOB, snoozeJobId)
+                    .putExtra(SnoozeReceiver.EXTRA_NOTIFICATION, id),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+            )
+            builder.addAction(0, "Snooze a week", snooze)
+        }
+        NotificationManagerCompat.from(context).notify(id, builder.build())
     }
 }
 
@@ -85,7 +99,8 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
 
         val snap = c.snapshotNow()
         val alerting = snap.statuses.filter {
-            it.state == DueState.OVERDUE || it.state == DueState.DUE_SOON || it.state == DueState.MINDER
+            it.snoozedUntil == null &&
+                (it.state == DueState.OVERDUE || it.state == DueState.DUE_SOON || it.state == DueState.MINDER)
         }
         alerting.forEachIndexed { i, s ->
             if (shouldSend("${s.job.id}_${s.state}")) {
@@ -96,7 +111,7 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
                     s.dueDate != null -> "Due ${s.dueDate}."
                     else -> "Due."
                 }
-                Reminders.notify(applicationContext, 1000 + i, "${s.job.name}: ${s.state.label.lowercase()}", detail)
+                Reminders.notify(applicationContext, 1000 + i, "${s.job.name}: ${s.state.label.lowercase()}", detail, snoozeJobId = s.job.id)
             }
         }
 
@@ -108,6 +123,15 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
             }
         }
 
+        val limit = c.oilAlertMilesPerQuart
+        val mpq = snap.milesPerQuart
+        if (limit > 0 && mpq != null && mpq < limit && shouldSend("oil_use")) {
+            Reminders.notify(
+                applicationContext, 4000, "Oil use is above your limit",
+                "About ${mpq.toInt()} miles per quart since the last oil change, against your limit of $limit. Keep checking the dipstick and see Wear trends.",
+            )
+        }
+
         val lastRecall = c.recalls.lastCheckedEpochDay()
         if (lastRecall == null || today.toEpochDay() - lastRecall >= 7) {
             c.recalls.refresh(today.toEpochDay()).getOrNull()?.forEach { r ->
@@ -115,5 +139,29 @@ class ReminderWorker(context: Context, params: WorkerParameters) : CoroutineWork
             }
         }
         return Result.success()
+    }
+}
+
+/** "Snooze a week" on a reminder notification. */
+class SnoozeReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        val jobId = intent.getStringExtra(EXTRA_JOB) ?: return
+        val notification = intent.getIntExtra(EXTRA_NOTIFICATION, 0)
+        val pending = goAsync()
+        val app = context.applicationContext as GarageApp
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val until = LocalDate.now().plusDays(7).toEpochDay()
+                app.container.db.settings().upsertSnooze(JobSnooze(jobId, until))
+                NotificationManagerCompat.from(context).cancel(notification)
+            } finally {
+                pending.finish()
+            }
+        }
+    }
+
+    companion object {
+        const val EXTRA_JOB = "job"
+        const val EXTRA_NOTIFICATION = "notification"
     }
 }

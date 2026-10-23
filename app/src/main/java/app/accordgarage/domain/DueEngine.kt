@@ -2,6 +2,7 @@ package app.accordgarage.domain
 
 import app.accordgarage.data.FuelEntry
 import app.accordgarage.data.IntervalOverride
+import app.accordgarage.data.JobSnooze
 import app.accordgarage.data.MinderReading
 import app.accordgarage.data.OdometerReading
 import app.accordgarage.data.OilTopUp
@@ -32,11 +33,15 @@ data class JobStatus(
     val dueDate: LocalDate?,
     val milesLeft: Int?,
     val projectedDate: LocalDate?,
+    /** Put off by the owner until this date; hidden from Due now and notifications until then. */
+    val snoozedUntil: LocalDate? = null,
 ) {
-    /** Needs action: shows on the home screen and the car illustration. */
-    val needsAction: Boolean
+    val isAlerting: Boolean
         get() = state == DueState.OVERDUE || state == DueState.MINDER ||
             state == DueState.CATCH_UP || state == DueState.DUE_SOON
+
+    /** Needs action: shows on the home screen and the car illustration. */
+    val needsAction: Boolean get() = isAlerting && snoozedUntil == null
 
     val actionWord: String
         get() = when (state) {
@@ -112,6 +117,7 @@ object DueEngine {
         minder: List<MinderReading>,
         overrides: List<IntervalOverride>,
         today: LocalDate = LocalDate.now(),
+        snoozes: List<JobSnooze> = emptyList(),
     ): GarageSnapshot {
         val odometer = currentOdometer(services, fuel, oil, readings, minder)
         val points = buildList {
@@ -124,6 +130,7 @@ object DueEngine {
         val perDay = milesPerDay(points, today)
         val latestMinder = minder.maxWithOrNull(compareBy({ it.dateEpochDay }, { it.id }))
         val overrideMap = overrides.associateBy { it.jobId }
+        val snoozeMap = snoozes.filter { it.untilEpochDay > today.toEpochDay() }.associate { it.jobId to LocalDate.ofEpochDay(it.untilEpochDay) }
 
         val statuses = Catalog.jobs.filter { it.id != "other" }.map { job ->
             val override = overrideMap[job.id]
@@ -160,7 +167,9 @@ object DueEngine {
                     (dueDate != null && !dueDate.isAfter(today.plusDays(SOON_DAYS))) -> DueState.DUE_SOON
                 else -> DueState.OK
             }
-            JobStatus(job, state, last, miles, months, override != null, dueOdo, dueDate, milesLeft, projected)
+            // Logging the job clears its snooze (see ServiceEditScreen).
+            val snoozed = snoozeMap[job.id]
+            JobStatus(job, state, last, miles, months, override != null, dueOdo, dueDate, milesLeft, projected, snoozed)
         }
 
         return GarageSnapshot(

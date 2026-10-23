@@ -27,8 +27,8 @@ class Container(context: Context) {
             db.odometer().all(),
             db.minder().all(),
         ) { s, f, o, r, m -> Inputs(s, f, o, r, m) }
-        combine(base, db.settings().overrides()) { i, ov ->
-            DueEngine.snapshot(i.services, i.fuel, i.oil, i.readings, i.minder, ov, LocalDate.now())
+        combine(base, db.settings().overrides(), db.settings().snoozes()) { i, ov, sn ->
+            DueEngine.snapshot(i.services, i.fuel, i.oil, i.readings, i.minder, ov, LocalDate.now(), sn)
         }
     }
 
@@ -40,6 +40,7 @@ class Container(context: Context) {
         db.minder().allNow(),
         db.settings().overridesNow(),
         LocalDate.now(),
+        db.settings().snoozesNow(),
     )
 
     private data class Inputs(
@@ -54,4 +55,9 @@ class Container(context: Context) {
     var lightTheme: Boolean
         get() = prefs.getBoolean("light_theme", false)
         set(v) = prefs.edit().putBoolean("light_theme", v).apply()
+
+    /** Warn when oil use since the last change is worse than this many miles per quart; 0 = off. */
+    var oilAlertMilesPerQuart: Int
+        get() = prefs.getInt("oil_alert_mpq", 1_000)
+        set(v) = prefs.edit().putInt("oil_alert_mpq", v).apply()
 }
