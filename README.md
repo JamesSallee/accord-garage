@@ -14,7 +14,7 @@ Status as of build 13 (Oct 2026), after the v1.0 gaps in PR #3 were closed. Noth
 
 These need someone at the car, not code.
 
-- [ ] Take a daylight photo of the car for the home screen. It replaces the illustration in v1.1.
+- [x] Take a daylight photo of the car for the home screen.
 - [ ] Read the paint code off the driver's door-jamb label.
 - [ ] Read the battery group size off the current battery.
 - [ ] Measure or look up the driver and passenger wiper blade sizes.
@@ -47,12 +47,12 @@ Smaller items the coverage check found that PR #3 didn't cover.
 - [ ] Fuel log: chart MPG over time (a sudden drop is already flagged).
 - [ ] Guides: add a cost estimate and DIY savings to each header, OEM and aftermarket part numbers, inline photos or clips, a verification state (written, checked against the manual, tested on this car), and content updates that don't need a new APK.
 - [ ] Car profile: list the new head unit and the factory radio (now the amplifier) with its code and input setting.
-- [ ] Design: switch to the sunlight theme automatically in bright light, show the service timeline as a horizontal track against mileage, use thin arc gauges for oil life, pads and tread, count numbers up when a screen opens, add haptic ticks, and make each system on the car illustration tappable on its own.
+- [ ] Design: switch to the sunlight theme automatically in bright light, show the service timeline as a horizontal track against mileage, use thin arc gauges for oil life, pads and tread, count numbers up when a screen opens, add haptic ticks, and make each system on the car photo tappable on its own.
 - [ ] Engineering: raise the target SDK from 34, and add automated tests (CI only builds today).
 
 ### 4. v1.1: Diagnose and learn
 
-- [ ] Photo of the car on the home screen (waiting on the daylight photo).
+- [x] Photo of the car on the home screen.
 - [ ] OBD-II scanner over a Bluetooth ELM327 adapter: read and clear codes, explain them for this car, show live data, log readiness monitors. Pick the first adapter to support.
 - [ ] Warning-light identifier by pointing the camera at the dash (the picture grid is done).
 - [ ] Symptom troubleshooter weighted by this model's known issues.

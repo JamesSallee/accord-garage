@@ -24,7 +24,7 @@ Known weak spots the app watches: early rear brake pad wear, oil consumption (pi
 - 100,000-mile catch-up list: spark plugs, valve clearance, coolant, ATF, rear brake pads.
 - Home screen callouts appear only on a part of the car with something due, overdue or flagged, and disappear once logged.
 - Design: dark "instrument panel" look (graphite, one red accent, Inter + JetBrains Mono, numbers as hero), no neon or sci-fi effects. Sunlight (light, high-contrast) mode in More.
-- Car image: a red coupe illustration for now (kept generic, not a copy of Honda's design); replace with a photo of James's own car in v1.1.
+- Car image: a side photo of James's own car (taken Nov 2026, background removed) is built into the app as `res/drawable-nodpi/car_photo.webp`, not picked on the phone, so the callouts can be pinned to the engine bay and each wheel hub. The anchor points are in `CarPhoto.kt` and must be re-measured if the photo changes.
 - App icon: white gauge arc around a red coupe on graphite; monochrome themed version.
 
 ## Head unit install (in the app as the featured guide)
@@ -52,7 +52,7 @@ Known weak spots the app watches: early rear brake pad wear, oil consumption (pi
 ## Status and next steps
 
 - v1.0 (build 5): home, service/fuel/oil logs with receipt OCR, Minder decoder, reminders, manual import and search, 15 guides, recalls, quick specs, documents wallet, roadside help, encrypted backup file. Not yet tested on the phone.
-- v1.1 ideas: photo of the car on the home screen, OBD-II Bluetooth scanner, auto-dimming mirror + dash cam guide (shared fuse tap and headliner run; products not yet chosen), hands-free voice "next"/"repeat", warning-light identifier, symptom troubleshooter, tire log, resale PDF, home-screen widget.
+- v1.1 ideas: OBD-II Bluetooth scanner, auto-dimming mirror + dash cam guide (shared fuse tap and headliner run; products not yet chosen), hands-free voice "next"/"repeat", warning-light identifier, symptom troubleshooter, tire log, resale PDF, home-screen widget.
 - Done: Quick specs checked against the 2008 Accord Coupe owner's manual (Oct 2026). Oil capacity corrected to 4.4 US qt (4.2 L); manual specifies ATF-Z1 (DW-1 is the current replacement). Still to fill from the car: paint code, battery group, wiper sizes, PZEV or ULEV for the spark plug, radio code.
 - v1.1 in progress: warning-light identifier (More, Roadside and the home top bar). 25 lights and messages for the U.S. EX-L 2.4L automatic, taken from owner's manual pp. 55–62 and the pages they point to; V6-only and Canada-only lights (fuel economy, fog, DRL, washer level) left out. Symbols are redrawn; each light links to its manual page for Honda's artwork. Pull requests now get a CI build check without publishing a release.
 - Done: all airbag recalls are completed on this VIN and recorded in the app (confirmed by James, Oct 2026).

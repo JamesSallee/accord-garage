@@ -47,7 +47,7 @@ import app.accordgarage.domain.JobStatus
 import app.accordgarage.domain.Zone
 import app.accordgarage.ui.LocalContainer
 import app.accordgarage.ui.manualSearch
-import app.accordgarage.ui.components.CarIllustration
+import app.accordgarage.ui.components.CarPhoto
 import app.accordgarage.ui.components.Field
 import app.accordgarage.ui.components.Fmt
 import app.accordgarage.ui.components.LightGlyph
@@ -121,7 +121,7 @@ fun HomeScreen(nav: NavHostController) {
                     else -> zone to "${zone.label} · ${items.size} DUE"
                 }
             }.toMap()
-        CarIllustration(
+        CarPhoto(
             callouts,
             Modifier.padding(horizontal = 14.dp, vertical = 6.dp).clickable { nav.navigate("maintenance") },
         )
